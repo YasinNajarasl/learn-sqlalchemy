@@ -1,0 +1,383 @@
+[
+  {
+    "slide": 1,
+    "title": "Introduction",
+    "text": "آموزش جامع نحوه کار با دیتابیس‌ در پایتون\n\nSQLAlchemy\n\nاز صفر تا حرفه‌ای\n\nراهنمای گام‌به‌گام  استفاده از ORM در پایتون\nیاسین نجاراصل – آذر 1405"
+  },
+  {
+    "slide": 2,
+    "title": "Roadmap",
+    "text": "نقشه راه آموزش\n\n2  /  45\n\n۰۱\n\nمقدمات و معماری\n\n۱–۸\n\n۰۲\n\nمدل‌ها و اسکیما\n\n۹–۱۵\n\n۰۳\n\nSession  و Unit of Work\n\n۱۶–۲۰\n\n۰۴\n\n CRUD عمیق\n\n۲۱–۲۸\n\n۰۵\n\nروابط (Relationships)\n\n۲۹–۳۵\n\n۰۶\n\nQuery نویسی پیشرفته\n\n۳۶–۴۰\n\n۰۷\n\nموضوعات پیشرفته\n\n۴۱–۴۵"
+  },
+  {
+    "slide": 3,
+    "title": "Objects and tables",
+    "text": "ORM  چیست؟\n\n3  /  45\n\nObject-Relational Mapping = نگاشت بین اشیاء زبان برنامه‌نویسی و جداول پایگاه داده\n\nجدول → کلاس\n\nهر جدول پایگاه داده به یک کلاس پایتون نگاشت می‌شود\n\nسطر → شیء\n\nهر رکورد جدول معادل یک instance از کلاس است\n\nستون → ویژگی\n\nهر ستون جدول به یک attribute کلاس تبدیل می‌شود\n\nSQL → متد\n\nبه جای نوشتن SQL، با متدها و اپراتورهای پایتون کار می‌کنید",
+    "file": "src/models.py",
+    "symbol": "User",
+    "start": 32,
+    "end": 47
+  },
+  {
+    "slide": 4,
+    "title": "Why SQLAlchemy?",
+    "text": "چرا SQLAlchemy؟\n\n4  /  45\n\nقدرتمندترین ORM پایتون\n\nبالغ‌ترین، انعطاف‌پذیرترین و کامل‌ترین ابزار\n\nدو لایه\n\nCore )SQL Expression( + ORM (شیءگرا)\n\nپشتیبانی همه پایگاه‌ها\n\nPostgreSQL, MySQL, SQLite, Oracle, MSSQL و ...\n\nکنترل کامل\n\nاز سطح بالا تا SQL خام دقیق\n\nAsync بومی\n\nپشتیبانی کامل از asyncio از نسخه ۲.۰\n\nاستاندارد صنعتی\n\nاستفاده در FastAPI، Flask، Django-rest و پروژه‌های بزرگ"
+  },
+  {
+    "slide": 5,
+    "title": "Raw SQL comparison",
+    "text": "مقایسه با SQL خام و ORMهای دیگر\n\n5  /  45\n\nموضوع\n\nSQL خام\n\nSQLAlchemy\n\nایمنی نوع\n\nندارد\n\nکامل\n\nمحافظت SQL Injection\n\nدستی\n\nخودکار\n\nروابط\n\nJOIN دستی\n\nویژگی شیء\n\nمهاجرت\n\nدستی\n\nAlembic\n\nقابلیت نگهداری\n\nپایین\n\nبالا\n\nعملکرد\n\nبالاترین\n\nبسیار نزدیک",
+    "file": "src/crud.py",
+    "symbol": "get_user_age_stats",
+    "start": 407,
+    "end": 413
+  },
+  {
+    "slide": 6,
+    "title": "Architecture",
+    "text": "معماری SQLAlchemy\n\n6  /  45\n\nApplication Code\n\nکد برنامه\n\nORM Layer\n\nSession, Query, Relationships, Identity Map\n\nCore / Expression Language\n\nTable, Column, select(), insert(), update()\n\nDialect + DBAPI\n\nPostgreSQL / MySQL / SQLite drivers\n\nDatabase\n\nPostgreSQL, MySQL, SQLite, ...",
+    "file": "src/main.py",
+    "symbol": "api_create_user",
+    "start": 167,
+    "end": 170
+  },
+  {
+    "slide": 7,
+    "title": "Install dependencies",
+    "text": "نصب و راه‌اندازی محیط\n\npip install sqlalchemy\n\npip install psycopg2-binary\n\npip install alembic\n\n SQLAlchemy 2.0 توصیه می‌شود (سبک مدرن و تایپ‌دار)\nبرای FastAPI معمولاً با asyncpg یا databases استفاده می‌شود\nنسخه ۱.۴ هنوز پشتیبانی می‌شود اما ۲.۰ آینده است\n\n7  /  45",
+    "file": "requirements.txt",
+    "symbol": "",
+    "start": 1,
+    "end": 10
+  },
+  {
+    "slide": 8,
+    "title": "Engine",
+    "text": "Engine - نقطه ورود به پایگاه داده\n\nfrom sqlalchemy import create_engine\n\n# SQLite (توسعه محلی)\nengine = create_engine(\"sqlite:///./blog.db\", echo=True)\n\n# PostgreSQL\nengine = create_engine(\n    \"postgresql+psycopg2://user:pass@localhost/dbname\",\n    pool_size=20, max_overflow=10\n)\n\necho=True\n\nتمام SQLهای تولیدشده را در کنسول چاپ می‌کند (عالی برای یادگیری)\n\npool_size\n\nتعداد اتصالات دائمی در مخزن (Connection Pool)\n\nیک Engine\n\nمعمولاً در کل برنامه فقط یک Engine ساخته می‌شود\n\n8  /  45",
+    "file": "src/database.py",
+    "symbol": "engine",
+    "start": 120,
+    "end": 128
+  },
+  {
+    "slide": 9,
+    "title": "Declarative base (SQLModel adaptation)",
+    "text": "Declarative Base - پایه مدل‌ها\n\nfrom sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column\nfrom sqlalchemy import String, Integer, DateTime\nfrom datetime import datetime\n\nclass Base(DeclarativeBase):\n    pass\n\nclass User(Base):\n    __tablename__ = \"users\"\n    ...\n\nدر SQLAlchemy 2.0 از DeclarativeBase و Mapped استفاده می‌کنیم (تایپ‌دار و مدرن).\n\nBase.metadata تمام جداول را نگه می‌دارد و برای create_all و Alembic استفاده می‌شود.\n\n9  /  45",
+    "file": "src/models.py",
+    "symbol": "UserBase",
+    "start": 25,
+    "end": 29
+  },
+  {
+    "slide": 10,
+    "title": "User model",
+    "text": "تعریف اولین مدل - User\n\n10  /  45\n\nfrom sqlalchemy.orm import Mapped, mapped_column, relationship\nfrom sqlalchemy import String, Integer, DateTime, ForeignKey\nfrom datetime import datetime\n\nclass User(Base):\n    __tablename__ = \"users\"\n\n    id: Mapped[int] = mapped_column(primary_key=True)\n    name: Mapped[str] = mapped_column(String(100))\n    email: Mapped[str] = mapped_column(String(255), unique=True)\n    age: Mapped[int | None] = mapped_column(Integer, nullable=True)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime, default=datetime.utcnow\n    )\n\n    posts: Mapped[list[\"Post\"]] = relationship(back_populates=\"author\")",
+    "file": "src/models.py",
+    "symbol": "User",
+    "start": 32,
+    "end": 47
+  },
+  {
+    "slide": 11,
+    "title": "Column types (examples in use)",
+    "text": "انواع ستون‌ها و محدودیت‌ها\n\n11  /  45\n\nInteger / BigInteger\n\nاعداد صحیح\n\nString(n) / Text\n\nمتن با طول محدود / نامحدود\n\nBoolean\n\nTrue / False\n\nDate / DateTime / Time\n\nتاریخ و زمان\n\nFloat / Numeric\n\nاعداد اعشاری\n\nJSON / JSONB\n\nداده ساختاریافته (PostgreSQL)\n\nEnum\n\nمقادیر محدود از پیش تعریف‌شده\n\nLargeBinary\n\nداده باینری (فایل)",
+    "file": "src/models.py",
+    "symbol": "UserBase",
+    "start": 25,
+    "end": 29
+  },
+  {
+    "slide": 12,
+    "title": "Keys, constraints and indexes",
+    "text": "کلیدها، محدودیت‌ها و ایندکس\n\n12  /  45\n\nid: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)\n\nemail: Mapped[str] = mapped_column(\n    String(255), unique=True, index=True, nullable=False\n)\n\nage: Mapped[int] = mapped_column(\n    Integer, CheckConstraint(\"age >= 0\"), default=0\n)\n\n# ایندکس مرکب\n__table_args__ = (\n    Index(\"ix_user_name_email\", \"name\", \"email\"),\n    UniqueConstraint(\"name\", \"email\", name=\"uq_name_email\"),\n)",
+    "file": "src/models.py",
+    "symbol": "User",
+    "start": 32,
+    "end": 47
+  },
+  {
+    "slide": 13,
+    "title": "Create tables",
+    "text": "ساخت جداول از روی مدل‌ها\n\n13  /  45\n\nfrom sqlalchemy import create_engine\n\nengine = create_engine(\"sqlite:///./blog.db\", echo=True)\n\nBase.metadata.create_all(engine)\n\nBase.metadata.drop_all(engine)\n\n create_allفقط جداول جدید می‌سازد و ستون‌های موجود را تغییر نمی‌دهد\nبرای تغییرات ساختاری همیشه از Alembic استفاده کنید\nدر تست‌ها می‌توانید از sqlite:///:memory: استفاده کنید\n",
+    "file": "src/database.py",
+    "symbol": "init_db",
+    "start": 167,
+    "end": 171
+  },
+  {
+    "slide": 14,
+    "title": "Post and foreign key",
+    "text": "مدل Post و کلید خارجی\n\n14  /  45\n\nclass Post(Base):\n    __tablename__ = \"posts\"\n\n    id: Mapped[int] = mapped_column(primary_key=True)\n    title: Mapped[str] = mapped_column(String(200))\n    content: Mapped[str] = mapped_column(Text)\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime, default=datetime.utcnow\n    )\n\n    user_id: Mapped[int] = mapped_column(ForeignKey(\"users.id\"))\n\n    author: Mapped[\"User\"] = relationship(back_populates=\"posts\")",
+    "file": "src/models.py",
+    "symbol": "Post",
+    "start": 87,
+    "end": 95
+  },
+  {
+    "slide": 15,
+    "title": "Session",
+    "text": "Session - قلب SQLAlchemy\n\n15  /  45\n\nSession یک واحد کار (Unit of Work) است که تغییرات اشیاء را ردیابی می‌کند و در نهایت آن‌ها را به پایگاه داده اعمال می‌کند.\n\nfrom sqlalchemy.orm import Session, sessionmaker\n\nSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)\n\nwith Session(engine) as session:\n\n    session.commit()",
+    "file": "src/database.py",
+    "symbol": "get_session",
+    "start": 182,
+    "end": 189
+  },
+  {
+    "slide": 16,
+    "title": "Object lifecycle (insert example)",
+    "text": "چرخه حیات Session\n\n16  /  45\n\nTransient\n\nشیء تازه ساخته شده، هنوز به Session اضافه نشده\n\nPending\n\nبا session.add() اضافه شده، منتظر INSERT\n\nPersistent\n\nدر پایگاه داده وجود دارد و توسط Session ردیابی می‌شود\n\nDeleted\n\nعلامت‌گذاری شده برای حذف، منتظر COMMIT\n\nDetached\n\nاز Session جدا شده (بعد از close یا expunge)",
+    "file": "src/crud.py",
+    "symbol": "create_user",
+    "start": 49,
+    "end": 54
+  },
+  {
+    "slide": 17,
+    "title": "Insert",
+    "text": "درج شیء (Create)\n\n17  /  45\n\nwith Session(engine) as session:\n    user = User(name=“Alice\", email=\"alice@example.com\", age=25)\n    session.add(user)\n    session.commit()\n    session.refresh(user)\n    print(user.id)\n\nsession.add_all([user1, user2, user3])\nsession.commit()\n\nپس از commit، تغییرات دائمی می‌شوند. اگر خطا رخ دهد، rollback خودکار انجام می‌شود.",
+    "file": "src/crud.py",
+    "symbol": "create_user",
+    "start": 49,
+    "end": 54
+  },
+  {
+    "slide": 18,
+    "title": "Bulk insert",
+    "text": "درج انبوه (Bulk Insert)\n\n18  /  45\n\nusers_data = [\n    {\"name\": f\"User {i}\", \"email\": f\"u{i}@ex.com\", \"age\": 20+i}\n    for i in range(1, 1001)\n]\n\nwith Session(engine) as session:\n    session.execute(insert(User), users_data)\n    session.bulk_insert_mappings(User, users_data)\n    session.commit()\n\nبرای بیش از صدها رکورد، bulk بسیار سریع‌تر از حلقه add است\nروابط و رویدادها در bulk معمولاً اجرا نمی‌شوند\nدر SQLAlchemy 2.0 از insert().values() یا executemany استفاده کنید",
+    "file": "src/crud.py",
+    "symbol": "mass_insert_users",
+    "start": 60,
+    "end": 76
+  },
+  {
+    "slide": 19,
+    "title": "Select",
+    "text": "پرس‌وجوی پایه (Read)\n\n19  /  45\n\nfrom sqlalchemy import select\n\nwith Session(engine) as session:\n\n    users = session.scalars(select(User)).all()\n\n    user = session.get(User, 1)\n\n    user = session.scalars(\n        select(User).where(User.email == \"alice@example.com\")\n    ).first()\n\n    names = session.scalars(select(User.name)).all()",
+    "file": "src/crud.py",
+    "symbol": "get_user_by_name",
+    "start": 99,
+    "end": 101
+  },
+  {
+    "slide": 20,
+    "title": "Filter",
+    "text": "فیلتر کردن نتایج\n\n20  /  45\n\nfrom sqlalchemy import select, and_, or_, not_\n\nstmt = select(User).where(\n    User.age >= 18,\n    User.name.like(\"%علی%\"),          # LIKE\n    User.email.endswith(\"@gmail.com\"),\n    User.age.in_([20, 25, 30]),\n    User.created_at.is_not(None)\n)\n\n# ترکیب شرط‌ها\nstmt = select(User).where(\n    or_(User.age < 20, User.age > 60)\n)\n\nresults = session.scalars(stmt).all()",
+    "file": "src/crud.py",
+    "symbol": "list_users_filtered",
+    "start": 116,
+    "end": 160
+  },
+  {
+    "slide": 21,
+    "title": "Sort and paginate",
+    "text": "مرتب‌سازی، محدودیت و صفحه‌بندی\n\n21  /  45\n\nstmt = (\n    select(User)\n    .where(User.age > 18)\n    .order_by(User.created_at.desc(), User.name)\n    .limit(10)\n    .offset(20)\n)\nusers = session.scalars(stmt).all()\n\nبرای صفحه‌بندی حرفه‌ای از کتابخانه‌هایی مثل fastapi-pagination یا پیاده‌سازی cursor-based استفاده کنید.",
+    "file": "src/crud.py",
+    "symbol": "list_users_filtered",
+    "start": 116,
+    "end": 160
+  },
+  {
+    "slide": 22,
+    "title": "Update",
+    "text": "به‌روزرسانی رکوردها (Update)\n\n22  /  45\n\nwith Session(engine) as session:\n    user = session.get(User, 1)\n    if user:\n        user.age = 26\n        user.name = \"آلیس جدید\"\n        session.commit()\n\nfrom sqlalchemy import update\nsession.execute(\n    update(User).where(User.age < 18).values(age=18)\n)\nsession.commit()",
+    "file": "src/crud.py",
+    "symbol": "update_user_age",
+    "start": 181,
+    "end": 190
+  },
+  {
+    "slide": 23,
+    "title": "Delete",
+    "text": "حذف رکوردها (Delete)\n\n23  /  45\n\nwith Session(engine) as session:\n    post = session.get(Post, 5)\n    if post:\n        session.delete(post)\n        session.commit()\n\nfrom sqlalchemy import delete\nsession.execute(\n    delete(Post).where(Post.created_at < some_date)\n)\nsession.commit()",
+    "file": "src/crud.py",
+    "symbol": "delete_post",
+    "start": 204,
+    "end": 211
+  },
+  {
+    "slide": 24,
+    "title": "Relationship types (implemented examples)",
+    "text": "روابط بین مدل‌ها-  نمای کلی\n\n24  /  45\n\nOne-to-Many\n\nیک کاربر ← چندین پست\n\nOne-to-One\n\nیک کاربر ↔ یک پروفایل\n\nMany-to-Many\n\nچندین پست ↔ چندین تگ",
+    "file": "src/models.py",
+    "symbol": "Post",
+    "start": 87,
+    "end": 95
+  },
+  {
+    "slide": 25,
+    "title": "One-to-many",
+    "text": "رابطه یک‌به‌چند (One-to-Many)\n\n25  /  45\n\nclass User(Base):\n    __tablename__ = \"users\"\n    id: Mapped[int] = mapped_column(primary_key=True)\n    name: Mapped[str]\n    posts: Mapped[list[\"Post\"]] = relationship(\n        back_populates=\"author\",\n        cascade=\"all, delete-orphan\"\n    )\n\nclass Post(Base):\n    __tablename__ = \"posts\"\n    id: Mapped[int] = mapped_column(primary_key=True)\n    title: Mapped[str]\n    user_id: Mapped[int] = mapped_column(ForeignKey(\"users.id\"))\n    author: Mapped[\"User\"] = relationship(back_populates=\"posts\")",
+    "file": "src/models.py",
+    "symbol": "User",
+    "start": 32,
+    "end": 47
+  },
+  {
+    "slide": 26,
+    "title": "Traverse relationships",
+    "text": "استفاده از روابط\n\n26  /  45\n\nwith Session(engine) as session:\n    user = session.get(User, 1)\n\n    for post in user.posts:\n        print(post.title)\n\n    new_post = Post(title=\"عنوان جدید\", content=\"...\")\n    user.posts.append(new_post)\n    session.commit()\n\n    print(new_post.author.name)",
+    "file": "src/crud.py",
+    "symbol": "get_user_with_posts",
+    "start": 244,
+    "end": 252
+  },
+  {
+    "slide": 27,
+    "title": "Many-to-many association",
+    "text": "رابطه چندبه‌چند (Many-to-Many)\n\n27  /  45\n\nfrom sqlalchemy import Table, Column, ForeignKey\n\npost_tags = Table(\n    \"post_tags\",\n    Base.metadata,\n    Column(\"post_id\", ForeignKey(\"posts.id\"), primary_key=True),\n    Column(\"tag_id\", ForeignKey(\"tags.id\"), primary_key=True),\n)\n\nclass Tag(Base):\n    __tablename__ = \"tags\"\n    id: Mapped[int] = mapped_column(primary_key=True)\n    name: Mapped[str] = mapped_column(unique=True)\n    posts: Mapped[list[\"Post\"]] = relationship(\n        secondary=post_tags, back_populates=\"tags\"\n    )",
+    "file": "src/models.py",
+    "symbol": "PostTag",
+    "start": 76,
+    "end": 84
+  },
+  {
+    "slide": 28,
+    "title": "Loading strategies compared",
+    "text": "استراتژی‌های بارگذاری (Loading)\n\n28  /  45\n\nLazy (پیش‌فرض)\n\nبارگذاری در لحظه دسترسی → N+1 problem خطرناک\n\nJoined Eager\n\nJOIN در همان پرس‌وجو → یک کوئری، داده تکراری\n\nSelectin Eager\n\nیک SELECT جداگانه با IN → معمولاً بهترین انتخاب\n\nSubquery Eager\n\nبا subquery → برای روابط پیچیده\n\nRaise / RaiseOnSQL\n\nاگر lazy load رخ دهد، خطا می‌دهد (برای جلوگیری از N+1)",
+    "file": "src/crud.py",
+    "symbol": "loading_strategy_demo",
+    "start": 474,
+    "end": 498
+  },
+  {
+    "slide": 29,
+    "title": "Eager loading",
+    "text": "کد Eager Loading\n\n29  /  45\n\nfrom sqlalchemy.orm import selectinload, joinedload\n\nstmt = select(User).options(selectinload(User.posts))\nusers = session.scalars(stmt).all()\n\nstmt = select(Post).options(joinedload(Post.author))\nposts = session.scalars(stmt).unique().all()\n\nstmt = select(User).options(\n    selectinload(User.posts).selectinload(Post.tags)\n)",
+    "file": "src/crud.py",
+    "symbol": "get_user_eager",
+    "start": 255,
+    "end": 261
+  },
+  {
+    "slide": 30,
+    "title": "Join",
+    "text": "پیوند جداول (Joins)\n\n30  /  45\n\nstmt = (\n    select(Post, User)\n    .join(User, Post.user_id == User.id)\n    .where(User.age > 25)\n)\n\nfor post, user in session.execute(stmt):\n    print(user.name, \"→\", post.title)\n\nstmt = select(User).outerjoin(Post).where(Post.id.is_(None))",
+    "file": "src/crud.py",
+    "symbol": "get_posts_with_users",
+    "start": 166,
+    "end": 175
+  },
+  {
+    "slide": 31,
+    "title": "Group and count",
+    "text": "تجمیع و Group By\n\n31  /  45\n\nfrom sqlalchemy import func, select\n\nstmt = (\n    select(\n        User.name,\n        func.count(Post.id).label(\"post_count\"),\n        func.avg(Post.id)\n    )\n    .join(Post, isouter=True)\n    .group_by(User.id)\n    .having(func.count(Post.id) > 2)\n    .order_by(func.count(Post.id).desc())\n)\nresults = session.execute(stmt).all()",
+    "file": "src/crud.py",
+    "symbol": "get_posts_per_user",
+    "start": 393,
+    "end": 404
+  },
+  {
+    "slide": 32,
+    "title": "Commit or roll back",
+    "text": "تراکنش‌ها (Transactions)\n\n32  /  45\n\nwith Session(engine) as session:\n    try:\n        user = session.get(User, 1)\n        user.age += 1\n        post = Post(title=\"...\", user_id=1)\n        session.add(post)\n        session.commit()\n    except Exception:\n        session.rollback()\n        raise\n\nSession به صورت پیش‌فرض یک تراکنش را شروع می‌کند. commit موفقیت‌آمیز است یا rollback کامل انجام می‌شود.",
+    "file": "src/crud.py",
+    "symbol": "transaction_rollback_demo",
+    "start": 433,
+    "end": 468
+  },
+  {
+    "slide": 33,
+    "title": "Alembic metadata",
+    "text": "Alembic - مدیریت مهاجرت‌ها\n\n33  /  45\n\npip install alembic\nalembic init migrations\n\nalembic revision --autogenerate -m \"add users and posts\"\n\nalembic upgrade head\n\nAlembic تغییرات مدل را تشخیص می‌دهد و اسکریپت SQL تولید می‌کند. این روش استاندارد صنعتی است.",
+    "file": "alembic/env.py",
+    "symbol": "target_metadata",
+    "start": 28,
+    "end": 28
+  },
+  {
+    "slide": 34,
+    "title": "Migration workflow",
+    "text": "جریان کاری Alembic\n\n34  /  45\n\n۱\n\nتغییر مدل\n\nستون جدید، جدول جدید یا تغییر نوع\n\n۲\n\nتولید revision\n\nalembic revision --autogenerate -m \"...\"\n\n۳\n\nبررسی اسکریپت\n\nفایل migrations/versions/... را چک کنید\n\n۴\n\nاعمال\n\nalembic upgrade head\n\n۵\n\nبازگشت (در صورت نیاز)\n\nalembic downgrade -1",
+    "file": "alembic/versions/24b470064191_initial_schema.py",
+    "symbol": "upgrade",
+    "start": 22,
+    "end": 69
+  },
+  {
+    "slide": 35,
+    "title": "Async session query",
+    "text": "SQLAlchemy ناهمگام (Async)\n\n35  /  45\n\nfrom sqlalchemy.ext.asyncio import create_async_engine, AsyncSession\nfrom sqlalchemy.orm import sessionmaker\n\nengine = create_async_engine(\n    \"postgresql+asyncpg://user:pass@localhost/db\",\n    echo=True\n)\nAsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)\n\nasync with AsyncSessionLocal() as session:\n    result = await session.execute(select(User).where(User.id == 1))\n    user = result.scalar_one_or_none()\n    await session.commit()",
+    "file": "src/crud.py",
+    "symbol": "async_get_user_with_posts",
+    "start": 504,
+    "end": 513
+  },
+  {
+    "slide": 36,
+    "title": "Connection pool settings",
+    "text": "مخزن اتصال (Connection Pooling)\n\n36  /  45\n\nengine = create_engine(\n    \"postgresql+psycopg2://...\",\n    pool_size=20,\n    max_overflow=30,\n    pool_pre_ping=True,\n    pool_recycle=3600\n)\n\nدر وب‌اپلیکیشن‌ها با ترافیک بالا ضروری است\npool_pre_ping از خطای (اتصال قطع‌شده) جلوگیری می‌کند\nبرای serverless معمولاً از NullPool استفاده می‌شود",
+    "file": "src/database.py",
+    "symbol": "engine",
+    "start": 120,
+    "end": 128
+  },
+  {
+    "slide": 37,
+    "title": "ORM event listener",
+    "text": "رویدادها و Listeners\n\n37  /  45\n\nfrom sqlalchemy import event\n\n@event.listens_for(User, \"before_insert\")\ndef receive_before_insert(mapper, connection, target):\n    print(f\"در حال درج کاربر: {target.name}\")\n    target.created_at = datetime.utcnow()\n\n@event.listens_for(Session, \"after_commit\")\ndef receive_after_commit(session):\n    pass",
+    "file": "src/events.py",
+    "symbol": "receive_before_insert",
+    "start": 19,
+    "end": 22
+  },
+  {
+    "slide": 38,
+    "title": "Test fixture",
+    "text": "تست‌نویسی با پایگاه داده\n\n38  /  45\n\nimport pytest\nfrom sqlalchemy import create_engine\nfrom sqlalchemy.orm import Session\n\n@pytest.fixture\ndef session():\n    engine = create_engine(\"sqlite:///:memory:\")\n    Base.metadata.create_all(engine)\n    with Session(engine) as s:\n        yield s\n    Base.metadata.drop_all(engine)\n\ndef test_create_user(session):\n    user = User(name=\"Test\", email=\"t@ex.com\")\n    session.add(user)\n    session.commit()\n    assert user.id is not None",
+    "file": "tests/test_blog.py",
+    "symbol": "session_fixture",
+    "start": 15,
+    "end": 31
+  },
+  {
+    "slide": 39,
+    "title": "Common mistakes (N+1 example)",
+    "text": "اشتباهات رایج و نکات مهم\n\n39  /  45\n\nN+1 Problem\n\nLazy Loading vs Eager Loading\n\nفراموش کردن commit\n\nتغییرات در حافظه می‌مانند و به پایگاه داده نمی‌روند.\n\nSession طولانی‌مدت\n\nهر بار کار با دیتابیس یک Session\n\nاستفاده از session در چند thread\n\nSession thread-safe نیست\n\nتغییر مدل بدون مهاجرت\n\nهر بار تغییر مدل‌ها یک migration",
+    "file": "src/crud.py",
+    "symbol": "loading_strategy_demo",
+    "start": 474,
+    "end": 498
+  },
+  {
+    "slide": 40,
+    "title": "Project layout",
+    "text": "ساختار پیشنهادی پروژه\n\n40  /  45\n\nproject/\n├── app/\n│   ├── __init__.py\n│   ├── main.py              # FastAPI / Flask\n│   ├── database.py          # engine, SessionLocal\n│   ├── models/\n│   │   ├── __init__.py\n│   │   ├── user.py\n│   │   └── post.py\n│   ├── schemas/             # Pydantic (اختیاری)\n│   ├── crud/                # توابع CRUD\n│   └── api/                 # مسیرهای API\n├── alembic/\n│   └── versions/\n├── tests/\n├── alembic.ini\n└── requirements.txt"
+  },
+  {
+    "slide": 41,
+    "title": "Web request and dependency",
+    "text": "جریان واقعی یک درخواست وب\n\n۱\n\nدرخواست HTTP وارد می‌شود\n\n۲\n\nDependency یک Session جدید می‌سازد\n\n۳\n\nCRUD یا سرویس با Session کار می‌کند\n\n۴\n\nsession.commit() در صورت موفقیت\n\n۵\n\nSession بسته می‌شود (حتی در صورت خطا)\n\n۶\n\nپاسخ JSON برگردانده می‌شود\n\n41  /  45",
+    "file": "src/main.py",
+    "symbol": "api_create_user",
+    "start": 167,
+    "end": 170
+  },
+  {
+    "slide": 42,
+    "title": "Best practices (session scope)",
+    "text": "بهترین شیوه‌ها - جمع‌بندی\n\n42  /  45\n\nهمیشه از context manager (with Session) استفاده کنید\nعمر Session را کوتاه‌ نگه دارید (per-request)\nبرای روابط از selectinload / joinedload استفاده کنید\nمهاجرت‌ها را با Alembic مدیریت کنید، نه create_all\nدر پروداکشن pool_pre_ping=True و PostgreSQL\nتست‌ها را با sqlite:///:memory: یا testcontainer بنویسید\nاز raw SQL فقط وقتی ORM کافی نیست استفاده کنید\nلاگ SQL را در توسعه فعال و در پروداکشن غیرفعال کنید\n",
+    "file": "src/database.py",
+    "symbol": "get_session",
+    "start": 182,
+    "end": 189
+  },
+  {
+    "slide": 43,
+    "title": "CRUD cheat sheet (insert example)",
+    "text": "Cheat Sheet\n\n43  /  45\n\nایجاد\n\nsession.add(obj) → commit()\n\nخواندن با id\n\nsession.get(Model, id)\n\nفیلتر\n\nselect(M).where(M.col == val)\n\nهمه\n\nsession.scalars(select(M)).all()\n\nبه‌روزرسانی\n\nobj.attr = x → commit()\n\nحذف\n\nsession.delete(obj) → commit()\n\nEager\n\noptions(selectinload(M.rel))\n\nJoin\n\nselect(A, B).join(B)\n\nتعداد\n\nselect(func.count()).select_from(M)\n\nتراکنش\n\nwith Session() as s: ... s.commit()",
+    "file": "src/crud.py",
+    "symbol": "create_user",
+    "start": 49,
+    "end": 54
+  },
+  {
+    "slide": 44,
+    "title": "Further reading",
+    "text": "منابع یادگیری بیشتر\n\n44  /  45\n\nمستندات رسمی\n\ndocs.sqlalchemy.org - کامل‌ترین منبع\n\nSQLAlchemy 2.0 Tutorial\n\nبخش Tutorial در مستندات رسمی\n\nAlembic Tutorial\n\nalembic.sqlalchemy.org\n\nFastAPI + SQLAlchemy\n\nمستندات FastAPI بخش Databases\n\nکتاب Essential SQLAlchemy\n\nکتاب کلاسیک O’Reilly\n\nپروژه‌های واقعی\n\nGitHub: tiangolo/full-stack-fastapi-template"
+  },
+  {
+    "slide": 45,
+    "title": "Closing slide",
+    "text": "پایان آموزش جامع\n\nSQLAlchemy\n\nممنون از توجه شما"
+  }
+]

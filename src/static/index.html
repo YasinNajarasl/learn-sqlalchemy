@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive SQLAlchemy + SQLModel lab based on the 45-slide full tutorial." />
+  <meta name="author" content="Yasin" />
+  <title>Yasin’s SQLAlchemy Lab</title>
+  <link rel="icon" type="image/svg+xml" href="/static/circle-learn.svg" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img class="brand-mark" src="/static/circle-learn.svg" width="56" height="56" alt="" />
+        <div class="brand-copy">
+          <div class="brand-title">Circle Learn</div>
+          <div class="brand-subtitle">SQLAlchemy Lab by Yasin</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Main navigation">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">◈</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="users">
+          <span class="nav-icon">◉</span><span>Users</span>
+        </button>
+        <button class="nav-item" data-page="posts">
+          <span class="nav-icon">▤</span><span>Posts</span>
+        </button>
+        <button class="nav-item" data-page="relationships">
+          <span class="nav-icon">⇄</span><span>Relationships</span>
+        </button>
+        <button class="nav-item" data-page="transactions">
+          <span class="nav-icon">⚡</span><span>Transactions</span>
+        </button>
+        <button class="nav-item" data-page="analytics">
+          <span class="nav-icon">▥</span><span>Analytics</span>
+        </button>
+        <button class="nav-item" data-page="sql">
+          <span class="nav-icon">⌘</span><span>SQL Console</span>
+        </button>
+        <button class="nav-item" data-page="learn">
+          <span class="nav-icon">◎</span><span>Learn</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="db-status" id="db-status">
+          <span class="dot"></span>
+          <span id="db-status-text">Checking database…</span>
+        </div>
+        <a class="sidebar-link" href="/docs" target="_blank" rel="noreferrer">OpenAPI docs ↗</a>
+        <div class="sidebar-note">45 slides · 12 live flows</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <div class="breadcrumb">Yasin’s SQLAlchemy Lab <span>/</span> <span id="breadcrumb-page">Dashboard</span></div>
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-subtitle">A live overview of the ORM playground.</p>
+        </div>
+        <div class="topbar-actions">
+          <label class="language-control"><span>Language</span>
+            <select id="ui-language" dir="auto" aria-label="Language / زبان">
+              <option value="en" lang="en">English</option>
+              <option value="fa" lang="fa">فارسی</option>
+            </select>
+          </label>
+          <button class="btn btn-ghost" id="btn-seed" type="button">Seed demo data</button>
+          <button class="btn btn-danger-ghost" id="btn-reset" type="button">Reset DB</button>
+        </div>
+      </header>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <!-- ============================== DASHBOARD ============================== -->
+      <section class="page active" id="page-dashboard">
+        <div class="hero card">
+          <div class="hero-copy">
+            <span class="eyebrow">Yasin’s SQLAlchemy course · 45 slides</span>
+            <h2>Learn SQLAlchemy by touching the database.</h2>
+            <p>
+              Every button in this lab runs the exact code from the presentation:
+              create, read, filter, paginate, join, eager-load, transact, migrate
+              and test. The SQL console shows every statement SQLAlchemy emits.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" data-action="seed" type="button">Seed demo data</button>
+              <button class="btn btn-ghost" data-page-link="users" type="button">Open Users</button>
+              <a class="btn btn-ghost" href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+            </div>
+          </div>
+          <div class="hero-orbit" aria-hidden="true">
+            <div class="orbit-ring ring-1"></div>
+            <div class="orbit-ring ring-2"></div>
+            <div class="orbit-core">ORM</div>
+            <span class="orbit-chip chip-1">Session</span>
+            <span class="orbit-chip chip-2">Engine</span>
+            <span class="orbit-chip chip-3">Models</span>
+            <span class="orbit-chip chip-4">Alembic</span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Users</div>
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-foot">rows in <code>users</code></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Posts</div>
+            <div class="stat-value" id="stat-posts">—</div>
+            <div class="stat-foot">rows in <code>posts</code></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Tags</div>
+            <div class="stat-value" id="stat-tags">—</div>
+            <div class="stat-foot">many-to-many rows</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Average age</div>
+            <div class="stat-value" id="stat-avg-age">—</div>
+            <div class="stat-foot">computed with <code>func.avg()</code></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Age distribution</h3>
+                <p class="card-sub">GROUP BY age · slide 31</p>
+              </div>
+              <span class="badge">SQL</span>
+            </div>
+            <div class="bar-chart" id="age-chart">
+              <div class="empty">Run the app to load data.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Posts per user</h3>
+                <p class="card-sub">LEFT JOIN + COUNT · slide 31</p>
+              </div>
+              <span class="badge">ORM</span>
+            </div>
+            <div class="bar-chart" id="posts-chart">
+              <div class="empty">Run the app to load data.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Recent posts</h3>
+                <p class="card-sub">eager-loaded authors · slide 30</p>
+              </div>
+              <button class="btn btn-small btn-ghost" data-page-link="posts" type="button">View all</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Title</th><th>Author</th><th>Created</th></tr></thead>
+                <tbody id="recent-posts-body"><tr><td colspan="3" class="empty-cell">No data yet.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Request flow</h3>
+                <p class="card-sub">slide 41 · one Session per request</p>
+              </div>
+              <span class="badge">FastAPI</span>
+            </div>
+            <ol class="flow-list">
+              <li><span>1</span><div><strong>HTTP request</strong><small>FastAPI receives the call.</small></div></li>
+              <li><span>2</span><div><strong>Session dependency</strong><small>A fresh Session is created.</small></div></li>
+              <li><span>3</span><div><strong>CRUD / service</strong><small>ORM objects are loaded and changed.</small></div></li>
+              <li><span>4</span><div><strong>commit()</strong><small>Changes are flushed to the database.</small></div></li>
+              <li><span>5</span><div><strong>Session closes</strong><small>Even when an error is raised.</small></div></li>
+              <li><span>6</span><div><strong>JSON response</strong><small>Pydantic serialises the result.</small></div></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== USERS ============================== -->
+      <section class="page" id="page-users">
+        <div class="card toolbar-card">
+          <form id="users-filter-form" class="filter-grid">
+            <label class="field">Search
+              <input id="users-q" type="search" placeholder="name or email" autocomplete="off" />
+            </label>
+            <label class="field">Min age
+              <input id="users-min-age" type="number" min="0" max="150" placeholder="18" />
+            </label>
+            <label class="field">Max age
+              <input id="users-max-age" type="number" min="0" max="150" placeholder="60" />
+            </label>
+            <label class="field">Email domain
+              <input id="users-domain" type="text" placeholder="example.com" autocomplete="off" />
+            </label>
+            <label class="field">Sort by
+              <select id="users-sort">
+                <option value="id">ID</option>
+                <option value="name">Name</option>
+                <option value="email">Email</option>
+                <option value="age">Age</option>
+                <option value="created_at">Created at</option>
+              </select>
+            </label>
+            <label class="field">Order
+              <select id="users-order">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
+            <label class="field">Page size
+              <select id="users-limit">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+            <div class="filter-actions">
+              <button class="btn btn-primary" type="submit">Apply filters</button>
+              <button class="btn btn-ghost" type="button" id="users-reset">Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-new-user" type="button">+ New user</button>
+          <button class="btn btn-ghost" id="btn-bulk-users" type="button">Bulk insert</button>
+          <button class="btn btn-ghost" id="btn-increment-ages" type="button">Increment all ages</button>
+          <span class="spacer"></span>
+          <span class="muted" id="users-count-label">0 users</span>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th><th>Name</th><th>Email</th><th>Age</th><th>Bio</th><th>Created</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr><td colspan="7" class="empty-cell">No users yet. Seed the demo data or create one.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="users-pagination"></div>
+        </div>
+      </section>
+
+      <!-- ============================== POSTS ============================== -->
+      <section class="page" id="page-posts">
+        <div class="card toolbar-card">
+          <form id="posts-filter-form" class="filter-grid">
+            <label class="field">Search
+              <input id="posts-q" type="search" placeholder="title or content" autocomplete="off" />
+            </label>
+            <label class="field">Author
+              <select id="posts-user-filter"><option value="">All authors</option></select>
+            </label>
+            <label class="field">Tag
+              <select id="posts-tag-filter"><option value="">All tags</option></select>
+            </label>
+            <label class="field">Page size
+              <select id="posts-limit">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+              </select>
+            </label>
+            <div class="filter-actions">
+              <button class="btn btn-primary" type="submit">Apply filters</button>
+              <button class="btn btn-ghost" type="button" id="posts-reset">Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn btn-primary" id="btn-new-post" type="button">+ New post</button>
+          <button class="btn btn-ghost" id="btn-mass-delete-posts" type="button">Mass delete by age</button>
+          <span class="spacer"></span>
+          <span class="muted" id="posts-count-label">0 posts</span>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Title</th><th>Author</th><th>Tags</th><th>Created</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="posts-table-body">
+                <tr><td colspan="6" class="empty-cell">No posts yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="posts-pagination"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>JOIN demo</h3>
+              <p class="card-sub">select(Post, User).join(User) · slide 30</p>
+            </div>
+            <div class="inline-actions">
+              <input id="join-min-age" type="number" min="0" max="150" value="20" aria-label="Minimum author age" />
+              <button class="btn btn-small btn-primary" id="btn-run-join" type="button">Run join</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Post</th><th>Author</th><th>Author age</th></tr></thead>
+              <tbody id="join-result"><tr><td colspan="3" class="empty-cell">Run the join to see paired rows.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== RELATIONSHIPS ============================== -->
+      <section class="page" id="page-relationships">
+        <div class="grid-3">
+          <div class="card concept-card">
+            <span class="concept-icon">1:N</span>
+            <h3>One-to-many</h3>
+            <p>One <code>User</code> owns many <code>Post</code> rows. The <code>posts</code> relationship and <code>user_id</code> foreign key make it explicit.</p>
+            <span class="badge">slide 25</span>
+          </div>
+          <div class="card concept-card">
+            <span class="concept-icon">N:N</span>
+            <h3>Many-to-many</h3>
+            <p><code>Post</code> and <code>Tag</code> are connected through the <code>post_tags</code> association table.</p>
+            <span class="badge">slide 27</span>
+          </div>
+          <div class="card concept-card">
+            <span class="concept-icon">E</span>
+            <h3>Eager loading</h3>
+            <p><code>selectinload()</code> fetches related rows in one extra SELECT instead of one query per row.</p>
+            <span class="badge">slide 29</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Tag manager</h3>
+                <p class="card-sub">many-to-many · slide 27</p>
+              </div>
+              <span class="badge" id="tag-count-badge">0 tags</span>
+            </div>
+            <form id="tag-form" class="inline-form">
+              <input id="tag-name" type="text" maxlength="50" placeholder="new tag name" autocomplete="off" />
+              <button class="btn btn-primary" type="submit">Add tag</button>
+            </form>
+            <div class="tag-list" id="tags-list">
+              <div class="empty">No tags yet.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Eager-load a user</h3>
+                <p class="card-sub">selectinload(User.posts).selectinload(Post.tags)</p>
+              </div>
+              <span class="badge">slide 29</span>
+            </div>
+            <div class="inline-form">
+              <select id="eager-user-select"><option value="">Choose a user…</option></select>
+              <button class="btn btn-primary" id="btn-eager-demo" type="button">Run eager query</button>
+            </div>
+            <pre class="result-pre" id="eager-result">Choose a user and run the query.</pre>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>N+1 vs eager loading</h3>
+                <p class="card-sub">measured with a SQL counter · slide 28/29</p>
+              </div>
+              <button class="btn btn-small btn-primary" id="btn-loading-demo" type="button">Measure</button>
+            </div>
+            <div id="loading-result" class="loading-result">
+              <div class="empty">Run the measurement to compare lazy and eager loading.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Relationship rules</h3>
+                <p class="card-sub">slides 24–29</p>
+              </div>
+              <span class="badge">ORM</span>
+            </div>
+            <ul class="check-list">
+              <li><strong>back_populates</strong> keeps both sides of a relationship in sync.</li>
+              <li><strong>cascade="all, delete-orphan"</strong> removes posts when their user is deleted.</li>
+              <li><strong>link_model</strong> is SQLModel's typed association table for many-to-many.</li>
+              <li><strong>selectinload</strong> is usually the best default for collections.</li>
+              <li><strong>joinedload</strong> is better for many-to-one lookups such as <code>post.author</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== TRANSACTIONS ============================== -->
+      <section class="page" id="page-transactions">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Atomic transaction</h3>
+                <p class="card-sub">update age + publish post, then commit · slide 32</p>
+              </div>
+              <span class="badge success">COMMIT</span>
+            </div>
+            <form id="atomic-form" class="form-stack">
+              <label class="field">User
+                <select id="atomic-user" required><option value="">Choose a user…</option></select>
+              </label>
+              <label class="field">New age
+                <input id="atomic-age" type="number" min="1" max="150" value="30" required />
+              </label>
+              <label class="field">Post title
+                <input id="atomic-title" type="text" maxlength="200" value="A transactional post" required />
+              </label>
+              <label class="field">Post content
+                <textarea id="atomic-content" rows="3" required>Both changes are committed together.</textarea>
+              </label>
+              <button class="btn btn-primary" type="submit" id="btn-atomic">Run transaction</button>
+            </form>
+            <pre class="result-pre" id="atomic-result">No transaction run yet.</pre>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Rollback demo</h3>
+                <p class="card-sub">flush two changes, then roll back · slide 32</p>
+              </div>
+              <span class="badge danger">ROLLBACK</span>
+            </div>
+            <form id="rollback-form" class="form-stack">
+              <label class="field">User
+                <select id="rollback-user" required><option value="">Choose a user…</option></select>
+              </label>
+              <label class="field">Attempted age
+                <input id="rollback-age" type="number" min="1" max="150" value="99" required />
+              </label>
+              <p class="hint">The endpoint changes the age and inserts a post, flushes both, then calls <code>rollback()</code>. The response proves nothing survived.</p>
+              <button class="btn btn-danger" type="submit" id="btn-rollback">Simulate failure</button>
+            </form>
+            <pre class="result-pre" id="rollback-result">No rollback run yet.</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>ORM event feed</h3>
+              <p class="card-sub">before_insert · after_insert · after_commit · slide 37</p>
+            </div>
+            <button class="btn btn-small btn-ghost" id="btn-clear-events" type="button">Clear</button>
+          </div>
+          <div class="event-log" id="event-log">
+            <div class="empty">Commit something to see events.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== ANALYTICS ============================== -->
+      <section class="page" id="page-analytics">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Age distribution</h3>
+                <p class="card-sub">raw SQL with <code>text()</code> · companion to slide 31</p>
+              </div>
+              <span class="badge">GROUP BY</span>
+            </div>
+            <div class="bar-chart" id="analytics-age-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Posts per user</h3>
+                <p class="card-sub">outer join + aggregate · slide 31</p>
+              </div>
+              <span class="badge">LEFT JOIN</span>
+            </div>
+            <div class="bar-chart" id="analytics-posts-chart"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Age rows</h3>
+                <p class="card-sub">the exact rows returned by the raw query</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Age</th><th>Count</th></tr></thead>
+                <tbody id="age-table-body"><tr><td colspan="2" class="empty-cell">No data.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Posts per user rows</h3>
+                <p class="card-sub">users with zero posts are included</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>User</th><th>Posts</th></tr></thead>
+                <tbody id="posts-per-user-table-body"><tr><td colspan="2" class="empty-cell">No data.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Query behind this page</h3>
+              <p class="card-sub">slide 31</p>
+            </div>
+            <span class="badge">Python</span>
+          </div>
+          <pre class="code-block"><code>stmt = (
+    select(
+        User.name,
+        func.count(Post.id).label("post_count"),
+    )
+    .join(Post, isouter=True)
+    .group_by(User.id)
+    .order_by(func.count(Post.id).desc())
+)
+results = session.execute(stmt).all()</code></pre>
+        </div>
+      </section>
+
+      <!-- ============================== SQL CONSOLE ============================== -->
+      <section class="page" id="page-sql">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Live SQL console</h3>
+              <p class="card-sub">echo=True equivalent · slide 8/36</p>
+            </div>
+            <div class="inline-actions">
+              <label class="toggle"><input id="sql-auto-refresh" type="checkbox" checked /> Auto-refresh</label>
+              <button class="btn btn-small btn-ghost" id="btn-refresh-sql" type="button">Refresh</button>
+              <button class="btn btn-small btn-danger-ghost" id="btn-clear-sql" type="button">Clear</button>
+            </div>
+          </div>
+          <div class="sql-log" id="sql-log">
+            <div class="empty">No SQL captured yet. Interact with the app.</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Connection pool</h3>
+                <p class="card-sub">pool_size=20 · max_overflow=30 · pool_pre_ping=True</p>
+              </div>
+              <span class="badge">slide 36</span>
+            </div>
+            <pre class="result-pre" id="pool-status">Loading pool status…</pre>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>ORM events</h3>
+                <p class="card-sub">SQLAlchemy listeners · slide 37</p>
+              </div>
+              <button class="btn btn-small btn-ghost" id="btn-clear-events-2" type="button">Clear</button>
+            </div>
+            <div class="event-log" id="sql-event-log">
+              <div class="empty">No events yet.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== LEARN ============================== -->
+      <section class="page" id="page-learn">
+        <div class="card learn-hero">
+          <div>
+            <span class="eyebrow">Interactive course · 12 labs · SQLite</span>
+            <h3>Learn SQLAlchemy by changing real queries</h3>
+            <p>Every lab gives you a starter file, a prediction exercise and a place to run the code. Practice mode executes against a consistent copy of the current database. Switch to live mode only when you want your commit to change <code>blog.db</code>.</p>
+          </div>
+          <div class="learn-progress">
+            <div class="learn-progress-top">
+              <span>Your progress</span>
+              <strong id="learn-progress-label">0 / 12</strong>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="learn-progress-bar"></div></div>
+            <button class="btn btn-small btn-ghost" id="btn-reset-progress" type="button">Reset progress</button>
+          </div>
+        </div>
+
+        <div class="learn-layout">
+          <aside class="card lesson-nav">
+            <div class="card-head">
+              <div><h3>Labs</h3><p class="card-sub">Pick a topic; progress stays in this browser.</p></div>
+              <span class="badge" id="lesson-count">12</span>
+            </div>
+            <input id="lesson-search" class="lesson-search" type="search" placeholder="Filter labs…" aria-label="Filter labs" />
+            <nav id="lesson-nav" class="lesson-list" aria-label="Course labs"></nav>
+            <p class="hint">Prefer a local editor? <a href="/static/workbook.py" download>Download workbook.py</a> and run <code>python workbook.py 1</code>.</p>
+          </aside>
+
+          <div class="learn-main">
+            <article class="card lesson-card" id="lesson-card">
+              <div class="card-head">
+                <div>
+                  <span class="eyebrow" id="lesson-kicker">Lab 1</span>
+                  <h3 id="lesson-title">Loading course…</h3>
+                </div>
+                <div class="inline-actions">
+                  <span class="badge" id="lesson-level">Beginner</span>
+                  <button class="btn btn-small btn-ghost" id="btn-mark-complete" type="button">Mark complete</button>
+                  <button class="btn btn-small btn-ghost" id="btn-next-lesson" type="button">Next →</button>
+                </div>
+              </div>
+              <div id="lesson-content" aria-live="polite">Loading course…</div>
+            </article>
+
+            <article class="card lab-card">
+              <div class="card-head">
+                <div><h3>Live lab</h3><p class="card-sub">Edit the code, run it, and read the SQL SQLAlchemy emitted.</p></div>
+                <label class="toggle"><input id="lab-live" type="checkbox" /> Live database</label>
+              </div>
+              <div class="lab-toolbar">
+                <button class="btn btn-small btn-primary" id="btn-run-lab" type="button">Run code <kbd>Ctrl ↵</kbd></button>
+                <button class="btn btn-small btn-ghost" id="btn-reset-code" type="button">Starter</button>
+                <button class="btn btn-small btn-ghost" id="btn-solution-code" type="button">Solution</button>
+                <button class="btn btn-small btn-ghost" id="btn-copy-code" type="button">Copy</button>
+                <span class="lab-status" id="lab-status">Ready</span>
+              </div>
+              <div class="editor-wrap">
+                <pre class="editor-gutter" id="lab-line-numbers" aria-hidden="true">1</pre>
+                <textarea class="lab-editor" id="lab-code" spellcheck="false" wrap="off" aria-label="Python code editor"></textarea>
+              </div>
+              <p class="hint lab-live-hint">Practice mode uses a snapshot copy of the database and discards it after the run. Live mode executes against the real database; commits persist and deletes are permanent.</p>
+              <div class="lab-tabs" role="tablist">
+                <button class="lab-tab active" data-lab-tab="output" type="button">Output</button>
+                <button class="lab-tab" data-lab-tab="sql" type="button">SQL <span class="badge" id="lab-sql-count">0</span></button>
+              </div>
+              <pre class="result-pre lab-output" id="lab-output" aria-live="polite">Choose a lab, edit the code, and press Run.</pre>
+              <div class="lab-sql-panel" id="lab-sql-panel" hidden>
+                <pre class="result-pre" id="lab-sql">No statements captured yet.</pre>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-head">
+                <div><h3>Database explorer</h3><p class="card-sub" id="schema-url">Current schema</p></div>
+                <button class="btn btn-small btn-ghost" id="btn-refresh-schema" type="button">Refresh</button>
+              </div>
+              <div class="schema-grid" id="schema-body">Loading schema…</div>
+            </article>
+          </div>
+        </div>
+
+        <details class="card lab-details">
+          <summary>Field lab: migrate a real database</summary>
+          <p>After lab 10, switch from a disposable database to a new SQLite file. From the project root, apply the checked-in migration and inspect the revision:</p>
+          <pre class="code-block">export DATABASE_URL=sqlite:///./migration-practice.db
+python -m alembic upgrade head
+python -m alembic current</pre>
+          <p>Expect <code>24b470064191 (head)</code>. In a practice copy of the project, add <code>nickname: Optional[str] = Field(default=None)</code> to <code>User</code> in <code>src/models.py</code>. Run:</p>
+          <pre class="code-block">python -m alembic revision --autogenerate -m "add nickname"
+python -m alembic upgrade head
+python -m alembic downgrade -1
+unset DATABASE_URL</pre>
+          <p>Before upgrading, read the generated revision: does upgrade add a nullable column and does downgrade remove it? Explain why <code>create_all()</code> alone would leave an existing table unchanged.</p>
+        </details>
+
+        <details class="card lab-details">
+          <summary>Slide → code map · 45 slides</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Slide</th><th>Topic</th><th>Code reference</th></tr></thead>
+              <tbody id="slide-map-body"><tr><td colspan="3" class="empty-cell">Loading map…</td></tr></tbody>
+            </table>
+          </div>
+        </details>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Session lifecycle</h3><p class="card-sub">slide 16</p></div>
+            </div>
+            <div class="lifecycle">
+              <span class="life-step">Transient</span>
+              <span class="life-arrow">→</span>
+              <span class="life-step">Pending</span>
+              <span class="life-arrow">→</span>
+              <span class="life-step active">Persistent</span>
+              <span class="life-arrow">→</span>
+              <span class="life-step">Deleted</span>
+              <span class="life-arrow">→</span>
+              <span class="life-step">Detached</span>
+            </div>
+            <p class="hint">A Session is a Unit of Work. It tracks objects, flushes changes and wraps them in a transaction.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Cheat sheet</h3><p class="card-sub">slide 43</p></div>
+            </div>
+            <div class="cheat-grid">
+              <div><code>session.add(obj)</code><span>create</span></div>
+              <div><code>session.get(Model, id)</code><span>read by id</span></div>
+              <div><code>select(M).where(...)</code><span>filter</span></div>
+              <div><code>session.scalars(stmt).all()</code><span>list</span></div>
+              <div><code>obj.attr = x</code><span>update</span></div>
+              <div><code>session.delete(obj)</code><span>delete</span></div>
+              <div><code>selectinload(M.rel)</code><span>eager</span></div>
+              <div><code>select(A, B).join(B)</code><span>join</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Common mistakes</h3><p class="card-sub">slide 39</p></div>
+            </div>
+            <ul class="warning-list">
+              <li><strong>N+1 queries</strong> — use eager loading for collections.</li>
+              <li><strong>Forgotten commit</strong> — flush can send SQL, but closing an uncommitted session rolls the transaction back.</li>
+              <li><strong>Long-lived Session</strong> — keep it per request.</li>
+              <li><strong>Session across threads</strong> — Session is not thread-safe.</li>
+              <li><strong>Model change without migration</strong> — use Alembic.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Best practices</h3><p class="card-sub">slide 42</p></div>
+            </div>
+            <ul class="check-list">
+              <li>Use <code>with Session(engine)</code> or a request dependency.</li>
+              <li>Keep Session lifetime short (per request).</li>
+              <li>Prefer <code>selectinload</code> / <code>joinedload</code> for relationships.</li>
+              <li>Manage schema changes with Alembic, not <code>create_all</code>.</li>
+              <li>Use <code>pool_pre_ping=True</code> and PostgreSQL in production.</li>
+              <li>Test with <code>sqlite:///:memory:</code> or Testcontainers.</li>
+              <li>Use raw SQL only when the ORM is not enough.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Recommended project structure</h3><p class="card-sub">slide 40</p></div>
+            </div>
+            <pre class="code-block"><code>project/
+├── src/
+│   ├── main.py          # FastAPI app
+│   ├── database.py      # engine, Session
+│   ├── models.py        # SQLModel models
+│   ├── crud.py          # query helpers
+│   ├── events.py        # ORM listeners
+│   └── static/          # this UI
+├── alembic/
+│   └── versions/
+├── tests/
+├── alembic.ini
+└── requirements.txt</code></pre>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Further learning</h3><p class="card-sub">slide 44</p></div>
+            </div>
+            <ul class="resource-list">
+              <li><a href="https://docs.sqlalchemy.org" target="_blank" rel="noreferrer">docs.sqlalchemy.org</a><span>Complete reference</span></li>
+              <li><a href="https://alembic.sqlalchemy.org" target="_blank" rel="noreferrer">alembic.sqlalchemy.org</a><span>Migration tutorial</span></li>
+              <li><a href="https://fastapi.tiangolo.com/tutorial/sql-databases/" target="_blank" rel="noreferrer">FastAPI SQL databases</a><span>Framework integration</span></li>
+              <li><a href="https://github.com/tiangolo/full-stack-fastapi-template" target="_blank" rel="noreferrer">full-stack-fastapi-template</a><span>Real project layout</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-root"></div>
+  <script src="/static/i18n.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

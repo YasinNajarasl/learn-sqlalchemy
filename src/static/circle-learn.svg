@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <title>Circle Learn — Yasin’s neural Y</title>
+  <defs>
+    <linearGradient id="orbit" x2=".9" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#b8acff"/><stop offset=".48" stop-color="#92c5ff"/><stop offset="1" stop-color="#4bf0bd"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="38" fill="#10192d"/>
+  <g fill="none" stroke="url(#orbit)" stroke-linecap="round">
+    <circle cx="40" cy="40" r="33" stroke-width="3" stroke-dasharray="146 9 43 10" transform="rotate(-45 40 40)"/>
+    <path d="M22 26 40 43 58 26 M40 43v17" stroke-width="6"/>
+  </g>
+  <g fill="#10192d" stroke-width="3">
+    <circle cx="22" cy="26" r="4.5" stroke="#b8acff"/>
+    <circle cx="58" cy="26" r="4.5" stroke="#92c5ff"/>
+    <circle cx="40" cy="60" r="4" stroke="#4bf0bd"/>
+  </g>
+  <circle cx="40" cy="43" r="4" fill="#ecfbff"/>
+</svg>
